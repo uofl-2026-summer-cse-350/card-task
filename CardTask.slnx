@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="CardTask.Core/CardTask.Core.csproj" Id="93881006-259c-4709-bc64-1dfc0b73878b" />
   <Project Path="CardTask.Tests/CardTask.Tests.csproj" Id="ac64f4ad-d9bf-45fa-8941-2cd9044659bb" />
+  <Project Path="CardTask.Web/CardTask.Web.csproj" Id="4c34ac2d-ed71-460e-a18f-62abfca49f1a" />
 </Solution>

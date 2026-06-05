@@ -20,6 +20,8 @@ public class RegisterModel : PageModel
     [Required(ErrorMessage = "UofL email address is required.")]
     [EmailAddress(ErrorMessage = "Please provide a valid formatting style.")]
     [StringLength(100, ErrorMessage = "Email cannot exceed 100 characters.")]
+    [RegularExpression(@"^[a-zA-Z0-9._%+-]+@([a-zA-Z0-9.-]*\.)?louisville\.edu$",
+            ErrorMessage = "Registration requires an official @louisville.edu university email address.")]
     public string Email { get; set; } = string.Empty;
 
     [BindProperty]

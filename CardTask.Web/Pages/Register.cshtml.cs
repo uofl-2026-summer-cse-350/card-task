@@ -19,6 +19,7 @@ public class RegisterModel : PageModel
     [BindProperty]
     [Required(ErrorMessage = "UofL email address is required.")]
     [EmailAddress(ErrorMessage = "Please provide a valid formatting style.")]
+    [StringLength(100, ErrorMessage = "Email cannot exceed 100 characters.")]
     public string Email { get; set; } = string.Empty;
 
     [BindProperty]

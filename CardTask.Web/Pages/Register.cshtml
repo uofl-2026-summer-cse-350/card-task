@@ -15,7 +15,7 @@
 
                 <div class="mb-3">
                     <label asp-for="Email" class="form-label fw-semibold text-secondary small">University Email</label>
-                    <input asp-for="Email" type="email" class="form-control form-control-lg rounded-3 border-secondary-subtle fs-6" placeholder="username@louisville.edu" autocomplete="email" />
+                    <input asp-for="Email" type="email" class="form-control" placeholder="username@louisville.edu" maxlength="999" />
                     <span asp-validation-for="Email" class="text-danger small"></span>
                 </div>
 

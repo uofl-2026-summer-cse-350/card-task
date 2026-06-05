@@ -1,13 +1,11 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace CardTask.Web.Pages
-{
-    public class IndexModel : PageModel
-    {
-        public void OnGet()
-        {
+namespace CardTask.Web.Pages;
 
-        }
+sealed public class IndexModel : PageModel
+{
+    public void OnGet()
+    {
+
     }
 }

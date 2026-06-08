@@ -1,11 +1,22 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace CardTask.Web.Pages;
 
-sealed public class IndexModel : PageModel
+[Authorize]
+public class IndexModel : PageModel
 {
-    public void OnGet()
+    public IActionResult OnGet()
     {
+        var authCheck = TempData["UserAuthenticated"] as string;
 
+        if (string.IsNullOrEmpty(authCheck) || authCheck != "true")
+        {
+            return RedirectToPage("/Login");
+        }
+
+        TempData.Keep("UserAuthenticated");
+        return Page();
     }
 }

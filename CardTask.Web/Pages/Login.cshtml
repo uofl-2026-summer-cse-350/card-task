@@ -1,45 +1,68 @@
 ﻿@page
 @model CardTask.Web.Pages.LoginModel
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
 @{
     ViewData["Title"] = "Student Sign In";
+    Layout = null; // Decouples this view completely from the global sidebar shell
 }
 
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 75vh;">
-    <div class="card border-0 shadow-lg p-3 rounded-4" style="width: 100%; max-width: 420px; background-color: #ffffff;">
-        <div class="card-body">
-            <h3 class="text-center fw-bold mb-1" style="color: #ad0000;">CardTask</h3>
-            <p class="text-muted text-center small mb-4">University of Louisville Student Portal</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - CardTask</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body style="background-color: #f8f9fa;">
 
-            <form method="post">
-                <div asp-validation-summary="ModelOnly" class="text-danger small p-2 mb-3 rounded-3" style="background-color: #fff5f5;"></div>
+    <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+        <div class="card border-0 shadow-lg p-3 rounded-4" style="width: 100%; max-width: 420px; background-color: #ffffff;">
+            <div class="card-body">
+                <h3 class="text-center fw-bold mb-1" style="color: #ad0000;">CardTask</h3>
+                <p class="text-muted text-center small mb-4">UofL Student Portal</p>
 
-                <div class="mb-3">
-                    <label asp-for="Email" class="form-label fw-semibold text-secondary small">University Email</label>
-                    <input asp-for="Email" type="email" class="form-control form-control-lg rounded-3 border-secondary-subtle fs-6" placeholder="username@louisville.edu" autocomplete="username" />
-                    <span asp-validation-for="Email" class="text-danger small"></span>
-                </div>
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger small p-2 mb-3 rounded-3" style="background-color: #fff5f5;"></div>
 
-                <div class="mb-4">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <label asp-for="Password" class="form-label fw-semibold text-secondary mb-0 small">Password</label>
-                        <a asp-page="/ForgotPassword" class="small text-decoration-none" style="color: #ad0000;">Forgot?</a>
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label fw-semibold text-secondary small">University Email</label>
+                        <input asp-for="Email" type="email" class="form-control form-control-lg rounded-3 border-secondary-subtle fs-6" placeholder="username@louisville.edu" autocomplete="username" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
                     </div>
-                    <input asp-for="Password" type="password" class="form-control form-control-lg rounded-3 border-secondary-subtle fs-6" placeholder="••••••••" autocomplete="current-password" />
-                    <span asp-validation-for="Password" class="text-danger small"></span>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label asp-for="Password" class="form-label fw-semibold text-secondary mb-0 small">Password</label>
+                            <a asp-page="/ForgotPassword" class="small text-decoration-none" style="color: #ad0000;">Forgot?</a>
+                        </div>
+                        <input asp-for="Password" type="password" class="form-control form-control-lg rounded-3 border-secondary-subtle fs-6" placeholder="••••••••" autocomplete="current-password" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-lg w-100 fw-bold text-white rounded-3 shadow-sm mb-3 py-2" style="background-color: #ad0000; border: none;">
+                        Sign In
+                    </button>
+
+                    @if (Env.IsDevelopment())
+                    {
+                        <button type="submit" asp-page-handler="DevBypass" formnovalidate class="btn btn-sm btn-outline-secondary w-100 rounded-3 py-2 border-dashed text-dark">
+                            <i class="bi bi-cpu me-2"></i>Developer Bypass (Skip Login)
+                        </button>
+                    }
+                </form>
+
+                <div class="text-center pt-2 border-top border-light-subtle">
+                    <p class="small text-muted mb-0">New to CardTask? <a asp-page="/Register" class="fw-semibold text-decoration-none" style="color: #ad0000;">Register Here</a></p>
                 </div>
-
-                <button type="submit" class="btn btn-lg w-100 fw-bold text-white rounded-3 shadow-sm mb-3 py-2" style="background-color: #ad0000; border: none;">
-                    Sign In
-                </button>
-            </form>
-
-            <div class="text-center pt-2 border-top border-light-subtle">
-                <p class="small text-muted mb-0">New to CardTask? <a asp-page="/Register" class="fw-semibold text-decoration-none" style="color: #ad0000;">Register Here</a></p>
             </div>
         </div>
     </div>
-</div>
 
-@section Scripts {
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <partial name="_ValidationScriptsPartial" />
-}
+</body>
+</html>

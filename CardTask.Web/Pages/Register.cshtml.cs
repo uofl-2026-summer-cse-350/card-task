@@ -7,14 +7,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CardTask.Web.Pages;
 
-public class RegisterModel : PageModel
+public class RegisterModel(AppDbContext context) : PageModel
 {
-    readonly AppDbContext _context;
-
-    public RegisterModel(AppDbContext context)
-    {
-        _context = context;
-    }
+    readonly AppDbContext _context = context;
 
     [BindProperty]
     [Required(ErrorMessage = "UofL email address is required.")]
@@ -28,10 +23,6 @@ public class RegisterModel : PageModel
     [Required(ErrorMessage = "A password must be assigned.")]
     [StringLength(100, MinimumLength = 6, ErrorMessage = "Passwords require at least 6 characters.")]
     public string Password { get; set; } = string.Empty;
-
-    public void OnGet()
-    {
-    }
 
     public async Task<IActionResult> OnPostAsync()
     {

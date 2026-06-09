@@ -1,8 +1,8 @@
 ﻿@page
 @model CardTask.Web.Pages.IndexModel
+@using CardTask.Web.Utils
 @{
     ViewData["Title"] = "Dashboard Workspace";
-    // Pass the real database-loaded courses down to your _Layout sidebar navigation loop
     ViewData["CachedCourses"] = Model.UserCourses;
 }
 
@@ -42,7 +42,7 @@
                                                 <span class="fw-semibold text-dark">@task.Title</span>
                                             </td>
                                             <td>
-                                                <span class="badge rounded-pill px-3 py-1 @(task.Label == "Exam" ? "bg-danger-subtle text-danger" : task.Label == "Homework" ? "bg-warning-subtle text-warning-dark" : "bg-primary-subtle text-primary")">
+                                                <span class="badge rounded-pill px-3 py-1" style="@LabelStyleExtensions.GetLabelStyles(task.Label)">
                                                     @task.Label
                                                 </span>
                                             </td>

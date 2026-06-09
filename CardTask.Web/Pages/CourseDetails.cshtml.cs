@@ -11,7 +11,7 @@ namespace CardTask.Web.Pages;
 [Authorize]
 public class CourseDetailsModel(AppDbContext context) : PageModel
 {
-    private readonly AppDbContext _context = context;
+    readonly AppDbContext _context = context;
 
     [BindProperty]
     [Required, StringLength(200)]
@@ -32,10 +32,22 @@ public class CourseDetailsModel(AppDbContext context) : PageModel
     [BindProperty]
     public int? EditingTaskId { get; set; }
 
+    // Use a clean, nested Input Model to isolate Edit Course parameters
+    [BindProperty]
+    public EditCourseInput CourseUpdate { get; set; } = new();
+
+    public class EditCourseInput
+    {
+        [Required, StringLength(15)]
+        public string CourseCode { get; set; } = string.Empty;
+
+        [Required, StringLength(100)]
+        public string CourseName { get; set; } = string.Empty;
+    }
+
     public Course? CurrentCourse { get; set; }
     public List<Course> UserCourses { get; set; } = new();
 
-    // Database-backed labels property
     public List<string> AvailableLabels => string.IsNullOrEmpty(CurrentCourse?.Labels)
         ? new List<string> { "Exam", "Homework", "Assignment" }
         : CurrentCourse.Labels.Split(',').ToList();
@@ -44,11 +56,19 @@ public class CourseDetailsModel(AppDbContext context) : PageModel
     {
         await LoadCourseWorkspaceAsync(id);
         if (CurrentCourse == null) return RedirectToPage("/Index");
+
+        // Seed values explicitly for initial load
+        CourseUpdate.CourseCode = CurrentCourse.CourseCode;
+        CourseUpdate.CourseName = CurrentCourse.CourseName;
+
         return Page();
     }
 
     public async Task<IActionResult> OnPostAddTaskAsync(int id)
     {
+        // Clear unrelated validation chains
+        ModelState.Remove("CourseUpdate.CourseCode");
+        ModelState.Remove("CourseUpdate.CourseName");
         ModelState.Remove(nameof(CustomLabelName));
         ModelState.Remove(nameof(LabelToDelete));
 
@@ -122,6 +142,55 @@ public class CourseDetailsModel(AppDbContext context) : PageModel
             }
         }
         return RedirectToPage(new { id });
+    }
+
+    public async Task<IActionResult> OnPostEditCourseAsync(int id)
+    {
+        ModelState.Remove(nameof(NewTaskTitle));
+        ModelState.Remove(nameof(NewTaskLabel));
+        ModelState.Remove(nameof(NewTaskDueDate));
+        ModelState.Remove(nameof(CustomLabelName));
+        ModelState.Remove(nameof(LabelToDelete));
+        ModelState.Remove(nameof(EditingTaskId));
+
+        if (!ModelState.IsValid)
+        {
+            await LoadCourseWorkspaceAsync(id);
+
+            foreach (var state in ModelState)
+            {
+                foreach (var error in state.Value.Errors)
+                {
+                    Console.WriteLine($"{state.Key}: {error.ErrorMessage}");
+                }
+            }
+
+            return Page();
+        }
+
+        var course = await _context.Courses.FindAsync(id);
+
+        if (course == null)
+            return RedirectToPage("/Index");
+
+        course.CourseCode = CourseUpdate.CourseCode.Trim();
+        course.CourseName = CourseUpdate.CourseName.Trim();
+
+        await _context.SaveChangesAsync();
+
+        return RedirectToPage(new { id });
+    }
+
+    public async Task<IActionResult> OnPostDeleteCourseAsync(int id)
+    {
+        var course = await _context.Courses.FindAsync(id);
+        if (course != null)
+        {
+            _context.Courses.Remove(course);
+            await _context.SaveChangesAsync();
+        }
+
+        return RedirectToPage("/Index");
     }
 
     private async Task LoadCourseWorkspaceAsync(int courseId)

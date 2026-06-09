@@ -1,11 +1,9 @@
-﻿<!DOCTYPE html>
-<html lang="en">
-<head>
+﻿<!DOCTYPE html><html lang="en"><head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - CardTask.Web</title>
     <script type="importmap"></script>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link class="nav-link" rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/CardTask.Web.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -17,9 +15,7 @@
         height: 100% !important;
         overflow: hidden !important;
         }
-    </style>
-</head>
-<body>
+    </style></head><body>
 
     @* Sidebar into a flexbox *@
     <div class="d-flex" style="height: 100vh; width: 100vw;">
@@ -32,23 +28,24 @@
                 <hr class="text-secondary" />
             </div>
 
-            <ul class="nav flex-column mb-auto">
+            <ul class="nav flex-column mb-3">
                 <li class="nav-item mb-1">
-                    <a class="nav-link text-white rounded px-3 py-2 @(Context.Request.Path == "/Index" ? "bg-secondary" : "")"
+                    <a class="nav-link text-white rounded px-3 py-2 @(Context.Request.Path == "/" || Context.Request.Path.Equals("/Index", StringComparison.OrdinalIgnoreCase) ? "bg-secondary" : "")"
                        asp-page="/Index">
                         <i class="bi bi-grid-1x2-fill me-2"></i>Dashboard
                     </a>
                 </li>
                 <li class="nav-item mb-1">
-                    <a class="nav-link text-white rounded px-3 py-2 @(Context.Request.Path == "/Settings" ? "bg-secondary" : "")"
+                    <a class="nav-link text-white rounded px-3 py-2 @(Context.Request.Path.Equals("/Settings", StringComparison.OrdinalIgnoreCase) ? "bg-secondary" : "")"
                        asp-page="/Settings">
                         <i class="bi bi-gear-fill me-2"></i>Settings
                     </a>
                 </li>
             </ul>
+            
             @* My Courses section, alongside course scaffolding for actual data later. Swap <li> tags for a loop connecting to the user's courses.*@
-            <div class="mt-4 mb-3" style="overflow-y: auto; max-height: 50vh;">
-                <h6 class="text-uppercase text-secondary fw-bold px-2 mb-2">
+            <div class="flex-grow-1 border-top border-secondary pt-3" style="overflow-y: auto; max-height: 55vh;">
+                <h6 class="text-uppercase text-secondary fw-bold px-2 mb-2" style="font-size: 0.75rem;">
                     <i class="bi bi-book-fill me-1"></i>My Courses
                 </h6>
                 <ul class="nav flex-column">
@@ -56,13 +53,23 @@
                     {
                         @foreach (var course in activeCourses)
                         {
+                            // 1. Check if the active page is CourseDetails
+                            bool isCurrentPage = ViewContext.RouteData.Values["page"]?.ToString()?.Equals("/CourseDetails", StringComparison.OrdinalIgnoreCase) ?? false;
+                            
+                            // 2. Safely capture the incoming ID parameter from either Route Values (e.g. /CourseDetails/5) OR Query Strings (e.g. /CourseDetails?id=5)
+                            string routeId = ViewContext.RouteData.Values["id"]?.ToString() ?? Context.Request.Query["id"].ToString();
+                            
+                            // 3. Evaluate the final flag
+                            bool isCurrentCourse = isCurrentPage && !string.IsNullOrEmpty(routeId) && routeId == course.Id.ToString();
+
                             <li class="nav-item mb-1">
-                                <a class="nav-link text-white-50 rounded px-3 py-2 d-flex justify-content-between align-items-center"
-                                   asp-page="/CourseDetails" asp-route-id="@course.Id">
+                                <a class="nav-link rounded px-3 py-2 d-flex justify-content-between align-items-center @(isCurrentCourse ? "text-white fw-bold" : "text-white-50")"
+                                   asp-page="/CourseDetails" asp-route-id="@course.Id"
+                                   style="@(isCurrentCourse ? "background-color: #0d6efd !important; color: #ffffff !important;" : "")">
                                     <span>
-                                        <i class="bi bi-bookmark-fill me-2 text-danger"></i>@course.CourseCode
+                                        <i class="bi bi-bookmark-fill me-2 @(isCurrentCourse ? "text-warning" : "text-danger")"></i>@course.CourseCode
                                     </span>
-                                    <span class="badge bg-secondary rounded-pill small">
+                                    <span class="badge @(isCurrentCourse ? "bg-white text-primary" : "bg-secondary") rounded-pill small">
                                         @course.Tasks.Count(t => !t.IsCompleted)
                                     </span>
                                 </a>
@@ -112,5 +119,4 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
 
-    @await RenderSectionAsync("Scripts", required: false)</body>
-</html>
+    @await RenderSectionAsync("Scripts", required: false)</body></html>

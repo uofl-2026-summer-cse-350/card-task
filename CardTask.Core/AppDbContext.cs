@@ -3,12 +3,9 @@ using CardTask.Core.Models;
 
 namespace CardTask.Core;
 
-sealed public class AppDbContext : DbContext
+sealed public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-    {
-    }
-
     public DbSet<User> Users { get; set; }
-    // Note: You will add Tasks and Courses collections here in Sprint 2!
+    public DbSet<Course> Courses { get; set; }
+    public DbSet<TodoTask> Tasks { get; set; }
 }

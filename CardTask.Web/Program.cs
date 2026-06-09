@@ -1,6 +1,6 @@
 using CardTask.Core;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.Cookies; // Added for cookie handling
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,14 +11,26 @@ builder.Services.AddRazorPages();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 1. CONFIGURE SECURE MIDDLEWARE COOKIES
+// CONFIGURE SECURE MIDDLEWARE COOKIES
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/Login"; // Where to send unauthenticated users automatically
+        options.LoginPath = "/Login";
         options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
         options.SlidingExpiration = true;
     });
+
+// 1. ADD SESSION MEMORY CONTAINER SERVICES (CRITICAL FOR CUSTOM LABELS)
+// ADD SESSION MEMORY CONTAINER SERVICES
+builder.Services.AddDistributedMemoryCache(); // Sets up the backend RAM storage pool
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // Session duration timeout rule
+
+    // FIX: Assign these properties directly through the Cookie sub-object wrapper!
+    options.Cookie.HttpOnly = true;                 // Security cookie guard protection
+    options.Cookie.IsEssential = true;              // Enforces cookie delivery even if tracking cookies are blocked
+});
 
 var app = builder.Build();
 
@@ -32,10 +44,12 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
-// 2. ACTIVATE AUTHENTICATION MIDDLEWARE INTERCEPTORS
-// CRITICAL ORDER: Authentication MUST run before Authorization
 app.UseAuthentication();
 app.UseAuthorization();
+
+// 2. ACTIVATE THE SESSION MIDDLEWARE PIPELINE INTERCEPTOR
+// CRITICAL ORDER: UseSession MUST run after UseRouting and BEFORE MapRazorPages
+app.UseSession();
 
 app.MapStaticAssets();
 app.MapRazorPages()

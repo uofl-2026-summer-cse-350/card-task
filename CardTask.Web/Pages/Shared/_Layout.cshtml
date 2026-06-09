@@ -9,33 +9,22 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/CardTask.Web.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        /* Forces the main browser body window context to never scroll or stretch artificially */
+        html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 100% !important;
+        overflow: hidden !important;
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">CardTask.Web</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
+
     @* Sidebar into a flexbox *@
-    <div class="d-flex">
+    <div class="d-flex" style="height: 100vh; width: 100vw;">
         @* Fixed sidebar *@
-        <nav class="bg-dark text-white p-3 d-flex flex-column" style="width: 250px; min-height: calc(100vh - 56px);">
+        <nav class="bg-dark text-white p-3 d-flex flex-column h-100" style="width: 250px; min-width: 250px;">
             <div class="mb-4 px-2">
                 <h5 class="text-white fw-bold">
                     <i class="bi bi-list me-2"></i>Navigation
@@ -58,35 +47,39 @@
                 </li>
             </ul>
             @* My Courses section, alongside course scaffolding for actual data later. Swap <li> tags for a loop connecting to the user's courses.*@
-            <div class="mt-4 mb-3">
+            <div class="mt-4 mb-3" style="overflow-y: auto; max-height: 50vh;">
                 <h6 class="text-uppercase text-secondary fw-bold px-2 mb-2">
                     <i class="bi bi-book-fill me-1"></i>My Courses
                 </h6>
                 <ul class="nav flex-column">
-                    <li class="nav-item mb-1">
-                        <a class="nav-link text-white-50 rounded px-3 py-2" href="#">
-                            <i class="bi bi-bookmark-fill me-2"></i>Course 1
-                        </a>
-                    </li>
-                    <li class="nav-item mb-1">
-                        <a class="nav-link text-white-50 rounded px-3 py-2" href="#">
-                            <i class="bi bi-bookmark-fill me-2"></i>Course 2
-                        </a>
-                    </li>
-                    <li class="nav-item mb-1">
-                        <a class="nav-link text-white-50 rounded px-3 py-2" href="#">
-                            <i class="bi bi-bookmark-fill me-2"></i>Course 3
-                        </a>
-                    </li>
+                    @if (ViewData["CachedCourses"] is List<CardTask.Core.Models.Course> activeCourses && activeCourses.Any())
+                    {
+                        @foreach (var course in activeCourses)
+                        {
+                            <li class="nav-item mb-1">
+                                <a class="nav-link text-white-50 rounded px-3 py-2 d-flex justify-content-between align-items-center"
+                                   asp-page="/CourseDetails" asp-route-id="@course.Id">
+                                    <span>
+                                        <i class="bi bi-bookmark-fill me-2 text-danger"></i>@course.CourseCode
+                                    </span>
+                                    <span class="badge bg-secondary rounded-pill small">
+                                        @course.Tasks.Count(t => !t.IsCompleted)
+                                    </span>
+                                </a>
+                            </li>
+                        }
+                    }
+                    else
+                    {
+                        <li class="nav-item px-3 py-2 text-muted small italic">
+                            <i class="bi bi-info-circle me-1"></i>No courses added.
+                        </li>
+                    }
                 </ul>
             </div>
 
             @* Sidebar Footer Actions with Dynamic Sign Out *@
             <div class="mt-auto pt-3 border-top border-secondary">
-                <a class="nav-link text-white-50 px-3 py-2 mb-3" asp-page="/Privacy">
-                    <i class="bi bi-shield-lock me-2"></i>Privacy
-                </a>
-
                 <a class="btn btn-danger btn-sm w-100 fw-bold rounded-3 py-2 text-white shadow-sm"
                    asp-page="/Logout"
                    style="background-color: #ad0000; border: none;">
@@ -95,23 +88,29 @@
             </div>
         </nav>
 
-        <main class="flex-grow-1 p-4" style="background-color: #f8f9fa;">
-            <div class="container-fluid">
+        <main class="flex-grow-1 p-4 d-flex flex-column justify-content-between h-100" style="background-color: #f8f9fa; overflow-y: auto;">
+            <div class="container-fluid mb-4">
                 @RenderBody()
             </div>
+
+            <footer class="container-fluid border-top pt-3 mt-auto text-secondary flex-shrink-0">
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2" style="font-size: 0.8rem;">
+                    <div>
+                        <span class="fw-bold text-dark">CardTask Project</span> &copy; 2026
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <span><i class="bi bi-mortarboard-fill me-1"></i> CSE 350 Software Engineering</span>
+                        <span class="text-muted">|</span>
+                        <span><i class="bi bi-people-fill me-1"></i> Group 10</span>
+                    </div>
+                </div>
+            </footer>
         </main>
     </div>
-
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - CardTask.Web - <a asp-area="" asp-page="/Privacy">Privacy</a>
-        </div>
-    </footer>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
 
-    @await RenderSectionAsync("Scripts", required: false)
-</body>
+    @await RenderSectionAsync("Scripts", required: false)</body>
 </html>

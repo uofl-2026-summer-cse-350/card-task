@@ -1,23 +1,107 @@
 ﻿@page
-@model IndexModel
+@model CardTask.Web.Pages.IndexModel
 @{
     ViewData["Title"] = "Dashboard Workspace";
+    // Pass the real database-loaded courses down to your _Layout sidebar navigation loop
+    ViewData["CachedCourses"] = Model.UserCourses;
 }
 
-<div class="container mt-3">
-    <div class="alert alert-secondary d-flex justify-content-between align-items-center shadow-sm" role="alert">
-        <div>
-            <strong>🛠️ Developer Debug Mode:</strong> Testing authentication loops and database tables.
+<div class="container-fluid py-2">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold mb-1 text-dark">Welcome back, @User.Identity?.Name!</h2>
+            <p class="text-muted small">Manage your University of Louisville courses and assignments in real-time.</p>
         </div>
-        <div>
-            <a asp-page="/Login" class="btn btn-dark fw-bold btn-sm shadow-sm px-3">
-                Go to Login Page →
-            </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 p-2 bg-white">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3 text-dark">
+                        <i class="bi bi-calendar-check me-2 text-danger"></i>Upcoming Tasks & Assignments
+                    </h5>
+
+                    @if (Model.UpcomingTasks.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light text-secondary small text-uppercase">
+                                    <tr>
+                                        <th>Task / Assignment</th>
+                                        <th>Category</th>
+                                        <th>Due Date</th>
+                                        <th class="text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var task in Model.UpcomingTasks)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <span class="fw-semibold text-dark">@task.Title</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge rounded-pill px-3 py-1 @(task.Label == "Exam" ? "bg-danger-subtle text-danger" : task.Label == "Homework" ? "bg-warning-subtle text-warning-dark" : "bg-primary-subtle text-primary")">
+                                                    @task.Label
+                                                </span>
+                                            </td>
+                                            <td class="text-muted small">
+                                                @task.DueDate.ToLocalTime().ToString("MMM dd, yyyy (hh:mm tt)")
+                                            </td>
+                                            <td class="text-end">
+                                                <button class="btn btn-sm btn-outline-success rounded-3 px-3">
+                                                    <i class="bi bi-check2"></i> Complete
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <div class="display-6 text-muted mb-2"><i class="bi bi-clipboard-check"></i></div>
+                            <p class="text-muted fw-medium mb-0">All clear! No pending tasks due soon.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 bg-white p-2">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-1 text-dark">
+                        <i class="bi bi-plus-circle me-2 text-danger"></i>Quick Add Course
+                    </h5>
+                    <p class="text-muted small mb-4">Register a new tracking target to your local profile engine.</p>
+
+                    <form method="post" asp-page-handler="AddCourse">
+                        <div class="mb-3">
+                            <label asp-for="NewCourseCode" class="form-label small fw-semibold text-secondary">Course Code</label>
+                            <input asp-for="NewCourseCode" class="form-control rounded-3" placeholder="e.g., CSE 350" required maxlength="10" />
+                            <span asp-validation-for="NewCourseCode" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="NewCourseName" class="form-label small fw-semibold text-secondary">Course Name</label>
+                            <input asp-for="NewCourseName" class="form-control rounded-3" placeholder="e.g., Operating Systems" required maxlength="100" />
+                            <span asp-validation-for="NewCourseName" class="text-danger small"></span>
+                        </div>
+
+                        <button type="submit" class="btn text-white w-100 fw-bold rounded-3 py-2 shadow-sm" style="background-color: #ad0000; border: none;">
+                            <i class="bi bi-folder-plus me-1"></i> Add to Profile
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="container mt-4">
-    <h2>🎯 Main Student Dashboard Workspace</h2>
-    <p class="text-muted">Sprint 2 core metrics will populate inside this wrapper framework.</p>
-</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

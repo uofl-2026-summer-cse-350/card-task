@@ -14,4 +14,6 @@ public class User
     [Required]
     [StringLength(255)]
     public string PasswordHash { get; set; } = string.Empty;
+
+    public ICollection<Course> Courses { get; set; } = new List<Course>();
 }

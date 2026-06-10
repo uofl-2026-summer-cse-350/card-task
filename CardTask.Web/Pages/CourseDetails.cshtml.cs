@@ -67,8 +67,8 @@ public class CourseDetailsModel(AppDbContext context) : PageModel
     public async Task<IActionResult> OnPostAddTaskAsync(int id)
     {
         // Clear unrelated validation chains
-        ModelState.Remove("CourseUpdate.CourseCode");
-        ModelState.Remove("CourseUpdate.CourseName");
+        ModelState.Remove(nameof(CourseUpdate.CourseCode));
+        ModelState.Remove(nameof(CourseUpdate.CourseName));
         ModelState.Remove(nameof(CustomLabelName));
         ModelState.Remove(nameof(LabelToDelete));
 

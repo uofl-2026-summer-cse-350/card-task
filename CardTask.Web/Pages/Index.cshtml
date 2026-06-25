@@ -15,12 +15,33 @@
     </div>
 
     <div class="row">
+        
         <div class="col-lg-8 mb-4">
             <div class="card border-0 shadow-sm rounded-4 p-2 bg-white">
                 <div class="card-body">
                     <h5 class="fw-bold mb-3 text-dark">
                         <i class="bi bi-calendar-check me-2 text-danger"></i>Upcoming Tasks & Assignments
                     </h5>
+
+                    <div class="mb-4 d-flex gap-2 flex-wrap align-items-center">
+                        <small class="text-secondary fw-semibold text-uppercase me-1" style="font-size: 0.75rem;">Filter Tasks:</small>
+                        
+                        <a asp-page="./Index" 
+                           class="btn btn-sm rounded-pill px-3 @(string.IsNullOrEmpty(Model.ActiveLabelFilter) ? "btn-dark text-white" : "btn-outline-secondary")">
+                            All
+                        </a>
+
+                        @foreach (var labelName in Model.AvailableCustomLabels)
+                        {
+                            bool isActive = Model.ActiveLabelFilter.Equals(labelName, StringComparison.OrdinalIgnoreCase);
+                            
+                            <a asp-page="./Index" 
+                               asp-route-labelFilter="@labelName" 
+                               class="btn btn-sm rounded-pill px-3 @(isActive ? "btn-danger text-white" : "btn-outline-secondary")">
+                                @labelName
+                            </a>
+                        }
+                    </div>
 
                     @if (Model.UpcomingTasks.Any())
                     {
@@ -69,9 +90,7 @@
                     }
                 </div>
             </div>
-        </div>
-
-        <div class="col-lg-4 mb-4">
+        </div> <div class="col-lg-4 mb-4">
             <div class="card border-0 shadow-sm rounded-4 bg-white p-2">
                 <div class="card-body">
                     <h5 class="fw-bold mb-1 text-dark">
@@ -101,7 +120,6 @@
         </div>
     </div>
 </div>
-
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }

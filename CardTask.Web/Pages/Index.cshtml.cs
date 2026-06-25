@@ -7,48 +7,49 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace CardTask.Web.Pages;
 
-[Authorize] // Enforces secure global cookie checking automatically
+[Authorize]
 sealed public class IndexModel(AppDbContext context) : PageModel
 {
     private readonly AppDbContext _context = context;
 
-    // Bind Properties for the Quick Add HTML Form Card
     [BindProperty]
     public string NewCourseCode { get; set; } = string.Empty;
 
     [BindProperty]
     public string NewCourseName { get; set; } = string.Empty;
 
-    // View Collections to stream active database rows to the HTML interface Canvas
+    // Track the currently active custom label filter selection
+    public string ActiveLabelFilter { get; set; } = string.Empty;
+
+    // Holds the dynamic list of available custom labels found on active tasks
+    public List<string> AvailableCustomLabels { get; set; } = new List<string>();
+
     public List<Course> UserCourses { get; set; } = new List<Course>();
     public List<TodoTask> UpcomingTasks { get; set; } = new List<TodoTask>();
 
-    // 1. Fires naturally when visiting/loading the dashboard home route
-    public async Task<IActionResult> OnGetAsync()
+    public async Task<IActionResult> OnGetAsync(string? labelFilter)
     {
-        await LoadStudentDataAsync();
+        ActiveLabelFilter = labelFilter ?? string.Empty;
+        await LoadStudentDataAsync(ActiveLabelFilter);
         return Page();
     }
 
-    // 2. Named Handler Interceptor: Fires exactly when clicking 'Add to Profile'
     public async Task<IActionResult> OnPostAddCourseAsync()
     {
         if (!ModelState.IsValid)
         {
-            await LoadStudentDataAsync();
+            await LoadStudentDataAsync(ActiveLabelFilter);
             return Page();
         }
 
         var studentEmail = User.Identity?.Name;
         if (string.IsNullOrEmpty(studentEmail)) return RedirectToPage("/Logout");
 
-        // Locate the matching User row to fetch the unique foreign key target ID
         var currentStudent = await _context.Users
             .FirstOrDefaultAsync(u => u.Email.ToLower() == studentEmail.ToLower());
 
         if (currentStudent == null) return RedirectToPage("/Logout");
 
-        // Construct the tracking database object schema instance 
         var courseEntry = new Course
         {
             CourseCode = NewCourseCode.Trim().ToUpper(),
@@ -56,16 +57,13 @@ sealed public class IndexModel(AppDbContext context) : PageModel
             UserId = currentStudent.Id
         };
 
-        // Inject the entity object row into our EF context tracker container
         _context.Courses.Add(courseEntry);
         await _context.SaveChangesAsync();
 
-        // Perform a clean post-redirect-get refresh state
         return RedirectToPage("/Index");
     }
 
-    // Core helper utility module to keep data fetching centralized and clean
-    private async Task LoadStudentDataAsync()
+    private async Task LoadStudentDataAsync(string labelFilter)
     {
         var studentEmail = User.Identity?.Name;
         if (string.IsNullOrEmpty(studentEmail)) return;
@@ -79,11 +77,34 @@ sealed public class IndexModel(AppDbContext context) : PageModel
         {
             UserCourses = currentUser.Courses.ToList();
 
-            UpcomingTasks = currentUser.Courses
+            // 1. Flatten all pending tasks into an initial queryable collection
+            var allActiveTasks = currentUser.Courses
                 .SelectMany(c => c.Tasks)
                 .Where(t => !t.IsCompleted)
-                .OrderBy(t => t.DueDate)
                 .ToList();
+
+            // 2. DYNAMICALLY EXTRACTION ENGINE: Pull all unique custom labels currently in use 
+            AvailableCustomLabels = allActiveTasks
+                .Where(t => !string.IsNullOrWhiteSpace(t.Label))
+                .Select(t => t.Label.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(l => l)
+                .ToList();
+
+            // 3. Apply the data filter constraint if a pill selection is active
+            if (!string.IsNullOrEmpty(labelFilter))
+            {
+                UpcomingTasks = allActiveTasks
+                    .Where(t => t.Label.Equals(labelFilter, StringComparison.OrdinalIgnoreCase))
+                    .OrderBy(t => t.DueDate)
+                    .ToList();
+            }
+            else
+            {
+                UpcomingTasks = allActiveTasks
+                    .OrderBy(t => t.DueDate)
+                    .ToList();
+            }
         }
     }
 }

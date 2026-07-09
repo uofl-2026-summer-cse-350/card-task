@@ -157,30 +157,42 @@ public sealed class AuthenticationSecurityTests
     [TestMethod]
     public async Task TC_FR5_ShouldDenyEntry_WhenCredentialsFailBCryptVerification()
     {
-        // 1. Arrange: Seed user record tables inside your storage layer
+        // Arrange
         using (var context = new AppDbContext(_dbOptions))
         {
-            var secureProfile = new User { Id = 88, Email = "test@louisville.edu", PasswordHash = BCrypt.Net.BCrypt.HashPassword("RealPassword") };
+            var secureProfile = new User
+            {
+                Id = 88,
+                Email = "test@louisville.edu",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("RealPassword")
+            };
+
             context.Users.Add(secureProfile);
             await context.SaveChangesAsync();
         }
 
-        // 2. Act: Force an invalid password parameter value directly through the live login form post engine
+        // Act
         using (var context = new AppDbContext(_dbOptions))
         {
             var loginPage = new LoginModel(context)
             {
                 Email = "test@louisville.edu",
                 Password = "INCORRECT_PLAINTEXT_PASSWORD_ATTEMPT",
-                PageContext = new PageContext() { HttpContext = new DefaultHttpContext() }
+                PageContext = new PageContext
+                {
+                    HttpContext = new DefaultHttpContext()
+                }
             };
 
             var result = await loginPage.OnPostAsync();
 
-            // 3. Assert: Confirm identity validation rules intercept and block the pipeline context cleanly
-            Assert.IsInstanceOfType(result, typeof(PageResult)); // Stays securely on page context grid
-            Assert.IsFalse(loginPage.ModelState.IsValid, "Security threshold leak: Gatekeeper page model accepted invalid credentials.");
-            Assert.Contains(e => e.ErrorMessage == "Invalid login attempt.", loginPage.ModelState[string.Empty].Errors);
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(PageResult));
+            Assert.IsFalse(loginPage.ModelState.IsValid,
+                "Security threshold leak: Gatekeeper page model accepted invalid credentials.");
+
+            Assert.Contains(e => e.ErrorMessage == "Invalid login attempt.", loginPage.ModelState.Values.SelectMany(v => v.Errors),
+                "Expected 'Invalid login attempt.' error was not found in ModelState.");
         }
     }
 

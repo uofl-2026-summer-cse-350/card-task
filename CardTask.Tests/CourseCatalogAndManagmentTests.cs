@@ -115,6 +115,55 @@ public sealed class CourseCatalogAndManagementTests
     }
 
     [TestMethod]
+    public async Task TC_FR13_RealSidebarCourseBadgeMaterializationCheck()
+    {
+        string studentEmail = "sidebar.test@louisville.edu";
+
+        // 1. Arrange: Seed a user profile containing an active, mapped course entity into RAM tables
+        using (var context = new AppDbContext(_dbOptions))
+        {
+            var student = new User { Id = 10, Email = studentEmail };
+            var activeCourse = new Course
+            {
+                Id = 5,
+                CourseCode = "CSE 350",
+                CourseName = "Agile Projects",
+                UserId = 10
+            };
+
+            context.Users.Add(student);
+            context.Courses.Add(activeCourse);
+            await context.SaveChangesAsync();
+        }
+
+        // 2. Act: Instantiate the real IndexModel dashboard code-behind page model
+        using (var context = new AppDbContext(_dbOptions))
+        {
+            var indexPage = new IndexModel(context)
+            {
+                PageContext = new PageContext() { HttpContext = new DefaultHttpContext() }
+            };
+
+            // Forge the user claims identity matching our seeded student profile address
+            var claims = new List<Claim> { new Claim(ClaimTypes.Name, studentEmail) };
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            indexPage.HttpContext.User = new ClaimsPrincipal(identity);
+
+            // Execute your actual production GET handler!
+            var result = await indexPage.OnGetAsync(labelFilter: null);
+
+            // 3. Assert: Confirm the real backend populated your operational property fields
+            Assert.IsInstanceOfType(result, typeof(PageResult));
+
+            Assert.AreEqual(1, indexPage.UserCourses.Count,
+                "The data loader engine failed to pull the student records into the page collection.");
+
+            Assert.AreEqual("CSE 350", indexPage.UserCourses[0].CourseCode,
+                "Relational mapping integrity break: The course data mapped to the dashboard collection shifted properties.");
+        }
+    }
+
+    [TestMethod]
     public async Task TC_FR14_ShouldVerifyFallbackMessageBehavior_WhenAccountIsPristine()
     {
         string cleanStudentEmail = "pristine.student@louisville.edu";

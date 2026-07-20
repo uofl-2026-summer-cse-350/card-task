@@ -4,6 +4,9 @@ using CardTask.Core;
 using CardTask.Core.Models;
 using CardTask.Web.Pages;
 
+
+// Tests use EF Core InMemory with a unique DB name per run (Guid) for fast, isolated CI tests.
+// Note: InMemory is NOT a relational provider — use SQLite in-memory or a real test DB for SQL parity.
 namespace CardTask.Tests;
 
 [TestClass]
